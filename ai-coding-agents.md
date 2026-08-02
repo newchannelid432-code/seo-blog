@@ -18,7 +18,7 @@ To understand **how AI coding agents work**, you need to understand the "Agentic
 3.  **Execution:** This is where the model uses tools. It writes files to the filesystem (Patch), executes shell commands (Bash), and maybe git commits. Unlike simple generation, it is manipulating the actual environment.
 4.  **Observation & Iteration:** The agent runs the `pytest` command. It sees the red X. It reads the traceback, loops back to the "Execution" step to fix the bug, and replays. It stops when the tests are green.
 
-If you want to dig deeper into the architecture behind this, check out our analysis on [internal: LLM function calling patterns] to see how the model actually decides which tool to use.
+If you want to dig deeper into the architecture behind this, check out our analysis on [LLM function calling patterns](https://newchannelid432-code.github.io/seo-blog/web-scraping-tools) to see how the model actually decides which tool to use.
 
 ---
 
@@ -169,11 +169,11 @@ AI coding agents in 2026 aren't about writing more code faster; they're about *m
 
 Your path forward:
 1.  **Start Small:** Use Cursor/Claude to write a single utility function with test coverage.
-2.  **Automate the Boring Stuff:** Let the agent write your CRUD routes and SQL queries. **How you can automate your entire database schema generation is a great next step here. [internal: best SQL generation tips]**.
+2.  **Automate the Boring Stuff:** Let the agent write your CRUD routes and SQL queries. **How you can automate your entire database schema generation is a great next step here. [best SQL generation tips](https://newchannelid432-code.github.io/seo-blog/bug-bounty-hunting)**.
 3.  **Scale:** Once you trust it with micro-tasks, let it orchestrate macro-tasks.
 
 The era of the "lone coder" is gone. The 2026 developer is a **conductor** leading an orchestra of AI agents. If you feel like your current codebase is behind the curve, don't worry—the agents are deterministic, but your strategy doesn't have to be. It's time to build.
 
 **Ready to ship? Go build your first Agentic PR, and don't forget to review the diff.**
 
-If you need help teaching your team these workflows, check out our dedicated Engineering team onboarding templates [internal: team training checklists].
+If you need help teaching your team these workflows, check out our dedicated Engineering team onboarding templates [team training checklists](https://newchannelid432-code.github.io/seo-blog/web-scraping-tools).

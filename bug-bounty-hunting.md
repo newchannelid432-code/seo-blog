@@ -154,6 +154,6 @@ You now have the roadmap. You know what bug bounty is, how to start, how to lear
 
 **Your next step is not to read another article. Your next step is to open your browser, navigate to PortSwigger Academy, and complete **Lab 1** (Reflected XSS).**
 
-If you want to fast-track your learning, check out our comprehensive guide on [internal: building your hacking homelab] to practice safely. For a curated list of the best training resources (many free), see our post on [internal: the best cybersecurity courses]. And once you are ready to pick a platform, read our breakdown of [internal: HackerOne vs. Bugcrowd vs. Intigriti] to see which one pays out fastest.
+If you want to fast-track your learning, check out our comprehensive guide on [building your hacking homelab](https://newchannelid432-code.github.io/seo-blog/ai-coding-agents) to practice safely. For a curated list of the best training resources (many free), see our post on [the best cybersecurity courses](https://newchannelid432-code.github.io/seo-blog/web-scraping-tools). And once you are ready to pick a platform, read our breakdown of [HackerOne vs. Bugcrowd vs. Intigriti](https://newchannelid432-code.github.io/seo-blog/web-scraping-tools) to see which one pays out fastest.
 
 The clock is ticking. The attack surface is growing. Go find your bug.
