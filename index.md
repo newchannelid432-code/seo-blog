@@ -13,6 +13,8 @@ Hands-on guides built from real questions people search for. New posts every wee
 - [The Complete Guide to Bug Bounty Hunting in 2026](bug-bounty-hunting.md)
 - [The Complete Guide to Python Web Scraping in 2026](python-web-scraping.md)
 - [The Complete Guide to Ethical Hacking Tools in 2026](ethical-hacking-tools.md)
+- [The Complete Guide to AI Automation Tools in 2026](ai-automation-tools.md)
+- [The Complete Guide to Freelance Web Scraping in 2026](freelance-web-scraping.md)
 
 ## About
 
