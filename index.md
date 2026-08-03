@@ -22,3 +22,5 @@ Hands-on guides built from real questions people search for. New posts every wee
 ## About
 
 Curated, practical technical content. Companion resource: [ScrapeHub — open-source scraping tools ranked by stars](https://gitlab.com/fazaleee123cr7/scrapehub).
+
+Follow [@hallucinatingai on Instagram](https://www.instagram.com/hallucinatingai/) for daily AI agent, web scraping, and security breakdowns — quick reels that expand into the full guides here.
