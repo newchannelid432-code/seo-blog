@@ -144,3 +144,6 @@ The era of "learning" AI is over. We are now in the era of **"Deploying"** AI. W
 Stop researching and start building. Pick a single workflow from your current schedule that frustrates you the most. Log into *Make.com*, connect an AI model, and build a prototype today. The "AI Architects" who act this week will be the ones writing the rules next year.
 
 **Ready to build your first agent but stuck on the prompt strategy?** Contact us for our signature "Automation Audit" to identify your highest-ROI automation points. [AI automation consulting services](https://newchannelid432-code.github.io/seo-blog/web-scraping-tools)
+---
+
+**Need this built for you?** I take on scraping and automation projects — [see pricing and how to start](https://newchannelid432-code.github.io/seo-blog/services.html).

@@ -173,3 +173,6 @@ Your action plan is simple: **Stop consuming tutorials and start mapping your da
 
 **The CTA:**
 What is the first "stupid, repetitive" task you are going to automate this week? Pick one. Go to Make or n8n, and try to build the flow. Don't aim for perfection—aim for 80% completion. You can refine the details later. The time to build is now, not after the "perfect" course.
+---
+
+**Need this built for you?** I take on scraping and automation projects — [see pricing and how to start](https://newchannelid432-code.github.io/seo-blog/services.html).

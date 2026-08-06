@@ -20,6 +20,12 @@ Hands-on guides built from real questions people search for. New posts every wee
 - [The Complete Guide to Cybersecurity For Beginners in 2026](cybersecurity-for-beginners.md)
 - [The Complete Guide to AI Video Generation in 2026](ai-video-generation.md)
 - [The Complete Guide to No-Code Automation in 2026](no-code-automation.md)
+- [The Complete Guide to Web Scraping Freelance in 2026](web-scraping-freelance.md)
+
+## Hire Me
+
+Need this built for you? I take on scraping and automation projects —
+[see pricing and how to start](services.md).
 
 ## About
 

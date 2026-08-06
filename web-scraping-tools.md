@@ -178,3 +178,6 @@ If your project is a one-off, write a script. If your business depends on this d
 **Ready to build your data pipeline?** If you need help ensuring your scraper complies with GDPR and CCPA regulations, check out our [legal compliance checklist](https://newchannelid432-code.github.io/seo-blog/bug-bounty-hunting) to protect your business before you deploy. Or, if you want to see how these tools integrate with modern data warehouses, read our guide on [data warehouse integration](https://newchannelid432-code.github.io/seo-blog/ai-coding-agents).
 
 **Which tool are you using? Tell me in the comments below—I’ll tell you if you’re leaving money (or speed) on the table.**
+---
+
+**Need this built for you?** I take on scraping and automation projects — [see pricing and how to start](https://newchannelid432-code.github.io/seo-blog/services.html).

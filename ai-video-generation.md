@@ -168,3 +168,6 @@ The barrier to entry has dropped to zero—you have access to the same neural ne
 Don't just read about it. Open up **CapCut** or **Canva** right now. Type in a prompt for a 5-second clip of a "steaming cup of coffee on a rainy windowsill, dolly zoom." See what happens. You'll start with a 20% hit rate, but by the time you've generated 100 clips, you'll have a workflow that would have taken a 10-man film crew a week to produce.
 
 Take the leap—your 2026 audience is waiting.
+---
+
+**Need this built for you?** I take on scraping and automation projects — [see pricing and how to start](https://newchannelid432-code.github.io/seo-blog/services.html).

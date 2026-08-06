@@ -261,3 +261,6 @@ We've covered the core concepts—from the basic mechanics of HTTP and HTML to a
 **Your next step is simple:** Don't just read about it. Write your first scraper today. Use the example above, find a small, static website, and extract `title` tags or `h1` tags. Break something, fix it, and learn. That's the only way to truly master it.
 
 If you get stuck or want to explore more advanced topics, remember to check the [ultimate resource list for web scraping](https://gitlab.com/fazaleee123cr7/scrapehub) for more tools. Happy scraping, and be respectful to the websites that power your data!
+---
+
+**Need this built for you?** I take on scraping and automation projects — [see pricing and how to start](https://newchannelid432-code.github.io/seo-blog/services.html).
