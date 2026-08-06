@@ -18,6 +18,8 @@ Hands-on guides built from real questions people search for. New posts every wee
 - [The Complete Guide to Freelance Web Scraping in 2026](freelance-web-scraping.md)
 - [The Complete Guide to Instagram Automation in 2026](instagram-automation.md)
 - [The Complete Guide to Cybersecurity For Beginners in 2026](cybersecurity-for-beginners.md)
+- [The Complete Guide to AI Video Generation in 2026](ai-video-generation.md)
+- [The Complete Guide to No-Code Automation in 2026](no-code-automation.md)
 
 ## About
 
