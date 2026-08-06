@@ -163,3 +163,5 @@ The money is there. The demand is exploding thanks to AI. You just need to posit
 **Ready to dive in?** Stop scrolling job boards and start building your niche today. Open GitHub, clone a repository, and try to scrape a complex site like Zillow without getting blocked.
 
 If you need a hand building a robust pipeline or just want to bounce ideas off someone who lives and breathes this stuff, **book a free 15-minute consultation** today. Let’s turn the web into your competitive advantage.
+
+**Need this built for you?** I take on scraping and automation projects — [see pricing and how to start](/seo-blog/services.html).
