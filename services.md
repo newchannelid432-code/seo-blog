@@ -43,3 +43,8 @@ liable for how your data was collected.
 ---
 
 *Serving clients worldwide. NDA-friendly. English only.*
+
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "Article", "headline": "Hire Me: Web Scraping, Data Pipelines & AI Automation", "description": "--- title: Hire Me — Web Scraping, Data Pipelines & AI Automation Services ---  Hire Me: Web Scraping, Data Pipelines & AI Automation You found the guides — now let me build it for you. I run a boutique scraping-and-automation shop. If you're here from Google, you already know what you need; here's ", "datePublished": "2026-08-07", "dateModified": "2026-08-07", "author": {"@type": "Person", "name": "AInside", "url": "https://medium.com/@muhamedfazalps7"}, "publisher": {"@type": "Organization", "name": "AInside"}, "mainEntityOfPage": "https://newchannelid432-code.github.io/seo-blog/services.html"}
+</script>
+

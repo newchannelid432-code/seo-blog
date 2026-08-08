@@ -171,3 +171,8 @@ Take the leap—your 2026 audience is waiting.
 ---
 
 **Need this built for you?** I take on scraping and automation projects — [see pricing and how to start](https://newchannelid432-code.github.io/seo-blog/services.html).
+
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "Article", "headline": "The Complete Guide to AI Video Generation in 2026", "description": "The Complete Guide to AI Video Generation in 2026 The video creation landscape has shifted seismically. In 2024, AI video was a novelty—clip-worthy results with wonky hands and dreamlike logic. In 2026, it is a production standard. We are no longer asking  if  AI can make a video; we are asking  whi", "datePublished": "2026-08-07", "dateModified": "2026-08-07", "author": {"@type": "Person", "name": "AInside", "url": "https://medium.com/@muhamedfazalps7"}, "publisher": {"@type": "Organization", "name": "AInside"}, "mainEntityOfPage": "https://newchannelid432-code.github.io/seo-blog/ai-video-generation.html"}
+</script>
+
