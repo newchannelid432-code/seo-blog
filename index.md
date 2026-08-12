@@ -4,7 +4,6 @@ title: SEO Blog
 
 # Practical Guides: Web Scraping, AI Agents, Bug Bounty
 
-<img src="https://countapi.xyz/hit/newchannelid432-seo-blog/home?count=true" width="0" height="0" style="display:none" alt="" />
 
 Hands-on guides built from real questions people search for. New posts every week.
 
