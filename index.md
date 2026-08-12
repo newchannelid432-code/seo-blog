@@ -25,6 +25,7 @@ Hands-on guides built from real questions people search for. New posts every wee
 - [How to Scrape Instagram Data in 2026](scrape-instagram-data.md)
 - [Freelance Pricing for Web Scraping in 2026](freelance-pricing-web-scraping.md)
 - [The Complete Guide to Scrape Google Maps Data in 2026](scrape-google-maps-data.md)
+- [How to Use Web Scraping for AI Training Data in 2026](web-scraping-for-ai-training-data.md)
 - [The Complete Guide to WhatsApp Automation for Business in 2026](whatsapp-automation-business.md)
 
 ## Hire Me
