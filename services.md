@@ -1,5 +1,6 @@
 ---
 title: Hire Me — Web Scraping, Data Pipelines & AI Automation Services
+<img src="https://countapi.xyz/hit/newchannelid432-seo-blog/page?count=true" width="0" height="0" style="display:none" alt="" />
 ---
 
 # Hire Me: Web Scraping, Data Pipelines & AI Automation
