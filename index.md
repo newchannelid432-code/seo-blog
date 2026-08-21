@@ -10,6 +10,7 @@ Hands-on guides built from real questions people search for. New posts every wee
 ## Posts
 
 - [The Complete Guide to Deepseek Tool Calling in 2026](deepseek-tool-calling.md)
+- [How to Fix next/image Silent Failure in Next.js Standalone Docker Deployments](next-image-standalone-docker.md)
 - [The Complete Guide to Prompt Injection in 2026](prompt-injection.md)
 - [The Complete Guide to Web Scraping Tools in 2026](web-scraping-tools.md)
 - [The Complete Guide to AI Coding Agents in 2026](ai-coding-agents.md)
