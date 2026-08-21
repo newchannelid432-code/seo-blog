@@ -1,10 +1,10 @@
 # The Complete Guide to DeepSeek Tool Calling in 2026
 
-DeepSeek supports tool calling through its API, allowing applications to give the model access to external functions and services. A model can decide that it needs a tool, generate structured arguments for that tool, and return the tool call to your application. Your application then executes the function and sends the result back to the model so it can produce the final response.
+DeepSeek supports tool calling through its API, allowing applications to give the model access to external functions and services. The model can decide when a registered function is needed, generate structured arguments, and return the tool call to your application. Your application then executes the function and sends the result back to the model so it can produce the final response.
 
-This makes DeepSeek useful for AI agents, automation systems, database applications, API integrations, coding assistants, and data-processing workflows.
+This makes DeepSeek highly effective for AI agents, automation systems, database applications, API integrations, coding assistants, and data-processing workflows.
 
-This guide explains how DeepSeek tool calling works, how to implement it in Python, how to handle tool-call results, and what security precautions developers should use.
+This guide explains how DeepSeek tool calling works, how to implement it in Python, and how to fix common local deployment issues like infinite tool loops and DSML tag leaks.
 
 ---
 
@@ -151,264 +151,135 @@ message = response.choices[0].message
 print(message)
 ```
 
-*Note: The exact model identifier and API availability should always be checked against DeepSeek's current documentation before deployment.*
-
 ---
 
-## Handling the Tool Call
+## Troubleshooting Local Deployments: Fixing Tool Loops and DSML Leaks
 
-When DeepSeek decides that a tool is required, the response can contain a `tool_calls` structure.
+When running DeepSeek models locally using frameworks like **vLLM**, **Ollama**, or custom setups, developers frequently run into issues where the model starts looping tool calls, repeating shell commands, or leaking raw **DSML (DeepSeek Markup Language)** tags (such as `<｜tool calls｜>`, `<｜action｜>`, or `<｜thought｜>`) into final outputs.
 
-A simplified example looks like:
+Here is how to resolve these issues.
 
-```json
-{
-  "tool_calls": [
-    {
-      "id": "call_123",
-      "type": "function",
-      "function": {
-        "name": "get_crypto_price",
-        "arguments": "{\"symbol\":\"BTC\"}"
-      }
-    }
-  ]
-}
+### 1. Fixing Speculative Decoding Issues in vLLM
+
+If speculative decoding is enabled or misconfigured in local vLLM deployments, token-sampling mismatches can occur during tool-call generation. This leads to recursive loops where the model repeats the same function call.
+
+To fix this, ensure you do not use draft/speculative model options unless verified, and run vLLM in eager execution mode to ensure deterministic sampling:
+
+```bash
+python -m vllm.entrypoints.openai.api_server \
+  --model deepseek-ai/DeepSeek-V4-Flash \
+  --enforce-eager \
+  --tensor-parallel-size 1 \
+  --dtype float16
 ```
 
-Your application should:
-1. Read the requested function name.
-2. Parse the arguments.
-3. Validate the arguments.
-4. Confirm that the function is allowed.
-5. Execute the function.
-6. Add the tool result to the conversation.
-7. Send the conversation back to DeepSeek.
-8. Continue until the model produces the final answer.
+### 2. Fixing Loop Conditions in Ollama (Modelfile)
 
----
+Ollama defaults can cause DeepSeek to drift during multi-turn function calling. To stabilize formatting and prevent looping, modify your custom `Modelfile` to include low-latency constraints and strict stop tokens:
 
-## Complete Tool-Calling Pattern
+```yaml
+FROM deepseek-v4-flash
 
-A simplified implementation looks like this:
+# Enforce zero temperature for deterministic tool calling
+PARAMETER temperature 0.0
+PARAMETER top_p 0.95
+
+# Set custom stop tokens to prevent the model from leaking internal DSML segments
+PARAMETER stop "<｜tool calls｜>"
+PARAMETER stop "<｜action｜>"
+PARAMETER stop "｜/tool calls｜>"
+```
+
+Build the custom model:
+```bash
+ollama create deepseek-stable -f ./Modelfile
+```
+
+### 3. Implementing a Stream Repair Parser in Python
+
+During active streaming, DSML blocks can arrive fragmented. If your client parser fails to handle incomplete tags, the invalid JSON causes retries and loops.
+
+Use this regex-based decorator to clean up incoming tokens and ensure tool-call boundaries match DeepSeek's native separator syntax (`｜`):
 
 ```python
+import re
 import json
+from functools import wraps
 
-def get_crypto_price(symbol: str):
-    # Replace this with a real API request.
-    return {
-        "symbol": symbol,
-        "price": 100000
-    }
+def repair_deepseek_stream(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        buffer = ""
+        repaired_output = ""
 
-tool_functions = {
-    "get_crypto_price": get_crypto_price
-}
+        def handle_chunk(chunk_text):
+            nonlocal buffer, repaired_output
+            buffer += chunk_text
 
-# Assume `message` came from DeepSeek.
-if message.tool_calls:
-    for tool_call in message.tool_calls:
-        function_name = tool_call.function.name
-        arguments = json.loads(tool_call.function.arguments)
+            # Match native DeepSeek V4 DSML tool calling wrappers
+            pattern = r"<｜tool calls｜>(.*?)｜/tool calls｜>"
+            matches = re.findall(pattern, buffer, flags=re.DOTALL)
 
-        if function_name not in tool_functions:
-            raise ValueError("Unknown tool requested")
+            for match in matches:
+                repaired_output += f"<｜tool calls｜>{match}｜/tool calls｜>\n"
+            
+            buffer = re.sub(pattern, '', buffer, flags=re.DOTALL)
+            return [f"<｜tool calls｜>{m}｜/tool calls｜>" for m in matches]
 
-        result = tool_functions[function_name](**arguments)
-        print("Tool result:", result)
+        yield from func(*args, **kwargs, on_chunk=handle_chunk)
+    return wrapper
 ```
 
-In a production system, the returned tool result would then be added to the conversation using the API's expected tool-message format before making another model request.
+### 4. Preventing Prompt History Poisoning
 
----
+If reasoning traces or internal planner text (such as `<｜thought｜>` or `<｜Planner｜>`) are replayed into subsequent turns, the context window gets cluttered with stale data, causing the model to hallucinate or get stuck. 
 
-## The Full Agent Loop
+Aggressively prune internal tags from assistant turns before sending the conversation history back to the model:
 
-A practical DeepSeek agent generally follows this pattern:
+```python
+def strip_internal_reasoning(message_str: str) -> str:
+    patterns = [
+        r"<｜Planner｜>.*?｜Plan end｜>",
+        r"<｜thought｜>.*?｜/thought｜>",
+        r"<｜action｜>.*?｜/action｜>"
+    ]
+    for pat in patterns:
+        message_str = re.sub(pat, "", message_str, flags=re.DOTALL)
+    return message_str
 
-```plaintext
-1. User sends request
-          ↓
-2. DeepSeek receives available tools
-          ↓
-3. DeepSeek chooses whether a tool is needed
-          ↓
-4. DeepSeek generates tool call + arguments
-          ↓
-5. Application validates the request
-          ↓
-6. Application executes the tool
-          ↓
-7. Application sends tool result to DeepSeek
-          ↓
-8. DeepSeek generates another tool call OR produces the final answer
+# Clean up conversation logs
+for msg in conversation_history:
+    if msg['role'] == 'assistant':
+        msg['content'] = strip_internal_reasoning(msg['content'])
 ```
-
-This loop can repeat when a task requires multiple operations.
-
----
-
-## Multiple and Parallel Tool Calls
-
-DeepSeek supports multiple function calls and parallel tool-call workflows.
-
-For example, an application might need to retrieve: **Weather + Exchange rate + Flight status**
-
-Instead of treating these as completely separate conversations, a compatible application can process multiple requested tool calls and return their results to the model. The application still controls actual execution.
-
-Developers should not assume every tool request must be executed in parallel. Whether parallel execution is safe depends on the functions involved.
-
-For example, `get_weather()` and `get_exchange_rate()` can often run independently, but `create_payment()` and `cancel_payment()` may have ordering and authorization requirements.
-
----
-
-## Strict Tool Calling
-
-One important feature for developers is DeepSeek's support for strict tool-calling behavior in its API.
-
-Strict mode is designed to improve adherence to the declared function schema. This can be particularly useful when the tool arguments must match a precise structure.
-
-For example, a tool may require:
-
-```json
-{
-  "customer_id": "12345",
-  "amount": 500
-}
-```
-
-rather than accepting arbitrary additional fields. Developers should check DeepSeek's current API documentation for the exact strict-mode availability and endpoint requirements because these features can change over time.
-
----
-
-## Tool Calling vs Normal Prompting
-
-* **Without tool calling:** `User ➔ Model ➔ Text response` (The model has no automatic way to query your live database or call your internal API).
-* **With tool calling:** `User ➔ Model ➔ Tool request ➔ Your API ➔ Live result ➔ Model ➔ Answer` (This makes tool calling much more useful for tasks that require live or external information).
-
-Examples include:
-- Current stock prices / Cryptocurrency prices
-- Weather and Flight updates
-- Database queries / Order status
-- Internal company systems
-- Web search / File processing
-- Calendar operations
-- Customer support systems
-- Automation workflows
-
----
-
-## Tool Calling Does Not Mean Unlimited Access
-
-Giving a model tools does not mean the model should have unrestricted access to your infrastructure.
-
-For example, avoid creating a single tool like `execute_any_command(command)` and giving it access to your production server. Instead, expose narrow functions such as `get_customer()`, `get_order()`, `create_ticket()`, `check_inventory()`, or `send_notification()`. This makes authorization and auditing much easier.
 
 ---
 
 ## Security Considerations
 
-Tool calling creates a new security boundary because model-generated arguments can influence real actions.
-
-* **Validate every argument:** Never assume the model will always provide safe or correct parameters. Check allowed values, data types, string length, ranges, IDs, URLs, and file paths.
-* **Use tool allowlists:** Only expose tools that the application actually needs. Do not automatically expose shell execution, database administration, filesystem deletion, or credential access.
-* **Apply authorization outside the model:** The model should not be the final authority for permissions. A user who is not allowed to delete an account should not gain that capability simply because the model generated a valid-looking tool call.
-* **Use timeouts and rate limits:** External APIs can fail or become slow. Use timeouts, retries, rate limits, circuit breakers, and error handling to prevent blocking.
-* **Log tool activity:** Record user, tool name, timestamp, request ID, arguments, success/failure, and execution time.
-* **Sandbox high-risk tools:** Code execution, file manipulation, and system commands should run in restricted environments.
-
----
-
-## Can DeepSeek Tool Calling Be Used With AI Agents?
-
-Yes. Tool calling is one of the core building blocks of an AI agent. An agent can combine tools such as web search, database, Python, file reader, calculator, company API, email, and calendar.
-
-The model can decide which operation is required based on the task.
-
-For example:
-1. **User request:** *"Find customers whose invoices are overdue by more than 30 days and prepare a summary."*
-2. **Agent actions:** `Query database ➔ Filter overdue invoices ➔ Calculate totals ➔ Generate summary ➔ Return result.`
-
-The important architectural point is that the agent framework manages the tools; DeepSeek provides the model reasoning and tool-selection behavior.
-
----
-
-## DeepSeek Tool Calling With LangChain and Other Frameworks
-
-DeepSeek's OpenAI-compatible API makes integration with existing LLM frameworks easier. Depending on the current versions of those frameworks, developers can integrate DeepSeek with tools through libraries such as LangChain, LlamaIndex, custom Python agents, and OpenAI-compatible client libraries.
-
-However, framework support can change independently of DeepSeek. Always verify the framework's current integration documentation.
-
----
-
-## Can Tool Calling Work With Zapier or Make?
-
-Yes, through an application or webhook bridge.
-
-A typical architecture is: `DeepSeek ➔ Your application ➔ Webhook ➔ Zapier / Make ➔ External service`.
-
-DeepSeek does not need direct access to every automation platform. Your application can expose a controlled tool such as `create_support_ticket()`.
-
----
-
-## Can Tool Calling Be Used With Local DeepSeek Models?
-
-Tool calling is an application-level capability, so local deployment is possible when the model-serving stack supports the required tool-calling format and your application implements the tool execution loop.
-
-Self-hosting the model does not automatically execute tools for you. Your application or agent framework remains responsible for tool execution.
-
----
-
-## Does DeepSeek Automatically Run My Python Functions?
-
-No. If DeepSeek generates `get_crypto_price("BTC")`, your Python application must decide whether that call is allowed and then execute the corresponding function. This separation is important for security.
-
----
-
-## Does DeepSeek Automatically Cache Tool Results?
-
-Do not assume that tool results are automatically cached for your application. Caching, persistence, session state, and database storage should normally be handled by the application architecture.
+* **Validate every argument:** Never trust model-generated arguments. Check data types, ranges, allowed values, and string lengths before running functions.
+* **Expose narrow tools:** Avoid generic executors like `run_shell(cmd)`. Instead, expose restricted functions like `read_file_safe(path)` or `send_email_notification(to, body)`.
+* **Enforce external authorization:** The model should not dictate permissions. Check user privileges at the application level before executing any tool calls.
 
 ---
 
 ## Frequently Asked Questions
 
-* **Is DeepSeek tool calling free?** Tool calling itself is an API capability, but the total cost depends on the model and API usage.
-* **Can I control which tools the model can use?** Yes. Your application determines which tools are supplied to the model.
-* **Can multiple tools be called?** Yes. DeepSeek supports multiple/parallel tool-call workflows.
-* **Is tool calling safe?** It can be, but only when the application validates tool arguments, controls permissions, and limits available tools.
-* **Can I use tool calling for databases?** Yes. Expose narrow functions like `get_customer_orders(customer_id)` rather than allowing unrestricted SQL execution.
-* **Can I build an AI agent with DeepSeek?** Yes. Tool calling can serve as the action mechanism in an agent architecture.
-
----
-
-## Best Practices
-
-```plaintext
-Use narrow tools ➔ Validate arguments ➔ Authorize every action ➔ Limit permissions ➔ Use timeouts ➔ Log executions ➔ Handle failures ➔ Sandbox high-risk operations
-```
-
-Do not treat model-generated tool calls as trusted input. Treat them like any other untrusted application input.
-
----
-
-## Conclusion
-
-DeepSeek tool calling is a practical feature for developers building AI applications that need access to external systems. The important idea is simple: DeepSeek decides which registered tool may be useful, your application executes that tool, and the result is returned to the model.
+* **Is DeepSeek tool calling free?** Tool calling is an API feature, but total cost is based on token usage. Check DeepSeek's pricing page for current V4 rates.
+* **Does DeepSeek support strict mode?** Yes. DeepSeek's beta endpoint supports `strict: true` schemas to force JSON compliance.
+* **Can I run tool calling locally?** Yes, as long as your inference engine (vLLM/Ollama) supports function schemas and your wrapper application handles execution.
 
 ---
 
 ## Official Sources
 
 * DeepSeek API documentation: [https://api-docs.deepseek.com/](https://api-docs.deepseek.com/)
-* DeepSeek Tool Calls documentation: [https://api-docs.deepseek.com/guides/tool_calls](https://api-docs.deepseek.com/guides/tool_calls)
+* DeepSeek Tool Calls guide: [https://api-docs.deepseek.com/guides/tool_calls](https://api-docs.deepseek.com/guides/tool_calls)
 * DeepSeek API reference: [https://api-docs.deepseek.com/api/create-chat-completion](https://api-docs.deepseek.com/api/create-chat-completion)
-* DeepSeek pricing/model documentation: [https://api-docs.deepseek.com/quick_start/pricing/](https://api-docs.deepseek.com/quick_start/pricing/)
 
 <script type="application/ld+json">
-{"@context": "https://schema.org", "@type": "Article", "headline": "The Complete Guide to DeepSeek Tool Calling in 2026", "description": "Learn how DeepSeek tool calling works, how to implement it in Python, how to handle tool-call results, and what security precautions developers should use.", "datePublished": "2026-08-21", "dateModified": "2026-08-21", "author": {"@type": "Person", "name": "AInside", "url": "https://medium.com/@muhamedfazalps7"}, "publisher": {"@type": "Organization", "name": "AInside"}, "mainEntityOfPage": "https://newchannelid432-code.github.io/seo-blog/deepseek-tool-calling.html"}
+{"@context": "https://schema.org", "@type": "Article", "headline": "The Complete Guide to DeepSeek Tool Calling in 2026", "description": "Learn how DeepSeek tool calling works, how to implement it in Python, and how to fix local vLLM and Ollama tool loops or DSML leaks.", "datePublished": "2026-08-21", "dateModified": "2026-08-21", "author": {"@type": "Person", "name": "AInside", "url": "https://medium.com/@muhamedfazalps7"}, "publisher": {"@type": "Organization", "name": "AInside"}, "mainEntityOfPage": "https://newchannelid432-code.github.io/seo-blog/deepseek-tool-calling.html"}
 </script>
 <script type="application/ld+json">
-{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Is DeepSeek tool calling free?", "acceptedAnswer": {"@type": "Answer", "text": "Tool calling itself is an API capability, but the total cost depends on the model and API usage. Check DeepSeek's current pricing documentation for the latest rates."}}, {"@type": "Question", "name": "Can I control which tools the model can use?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Your application determines which tools are supplied to the model and should enforce authorization independently."}}, {"@type": "Question", "name": "Can multiple tools be called?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. DeepSeek supports multiple/parallel tool-call workflows, depending on the API and model behavior."}}, {"@type": "Question", "name": "Is tool calling safe?", "acceptedAnswer": {"@type": "Answer", "text": "It can be, but only when the application validates tool arguments, controls permissions, limits available tools, and isolates high-risk operations."}}, {"@type": "Question", "name": "Can I use tool calling for databases?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. A common architecture is to expose narrowly defined database functions rather than allowing the model unrestricted SQL execution."}}, {"@type": "Question", "name": "Can I build an AI agent with DeepSeek?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Tool calling can serve as the action mechanism in an agent architecture, while your application controls tool registration, execution, state, permissions, and error handling."}}]}
+{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Is DeepSeek tool calling free?", "acceptedAnswer": {"@type": "Answer", "text": "Tool calling itself is an API capability, but the total cost depends on the model and API usage. Check DeepSeek's current pricing documentation for the latest rates."}}, {"@type": "Question", "name": "Does DeepSeek support strict mode?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. DeepSeek's beta endpoint supports strict: true schemas to force JSON compliance."}}, {"@type": "Question", "name": "Can I run tool calling locally?", "acceptedAnswer": {"@type": "Answer", "text": "Yes, as long as your inference engine (vLLM/Ollama) supports function schemas and your wrapper application handles execution."}}]}
 </script>
